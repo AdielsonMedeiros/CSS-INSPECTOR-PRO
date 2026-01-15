@@ -190,6 +190,282 @@ function getTextDecorationClass(deco: string): string {
   return '';
 }
 
+// ============ GRID UTILITIES ============
+
+function getGridColumnsClass(cols: string): string {
+  if (!cols || cols === 'none') return '';
+  
+  // Count columns by splitting on spaces (simplified)
+  const parts = cols.split(/\s+/).filter(p => p && p !== 'none');
+  const count = parts.length;
+  
+  // Check for repeat()
+  const repeatMatch = cols.match(/repeat\((\d+)/);
+  if (repeatMatch) {
+    return `grid-cols-${repeatMatch[1]}`;
+  }
+  
+  if (count >= 1 && count <= 12) return `grid-cols-${count}`;
+  return `grid-cols-[${cols.replace(/\s+/g, '_')}]`;
+}
+
+function getGridRowsClass(rows: string): string {
+  if (!rows || rows === 'none') return '';
+  
+  const parts = rows.split(/\s+/).filter(p => p && p !== 'none');
+  const count = parts.length;
+  
+  const repeatMatch = rows.match(/repeat\((\d+)/);
+  if (repeatMatch) {
+    return `grid-rows-${repeatMatch[1]}`;
+  }
+  
+  if (count >= 1 && count <= 6) return `grid-rows-${count}`;
+  return '';
+}
+
+function getPlaceItemsClass(place: string): string {
+  const map: Record<string, string> = {
+    'center': 'place-items-center',
+    'start': 'place-items-start',
+    'end': 'place-items-end',
+    'stretch': 'place-items-stretch',
+  };
+  return map[place] || '';
+}
+
+function getPlaceContentClass(place: string): string {
+  const map: Record<string, string> = {
+    'center': 'place-content-center',
+    'start': 'place-content-start',
+    'end': 'place-content-end',
+    'space-between': 'place-content-between',
+    'space-around': 'place-content-around',
+    'space-evenly': 'place-content-evenly',
+    'stretch': 'place-content-stretch',
+  };
+  return map[place] || '';
+}
+
+// ============ BACKDROP & BLEND UTILITIES ============
+
+function getBackdropFilterClass(filter: string): string {
+  if (!filter || filter === 'none') return '';
+  
+  const classes: string[] = [];
+  
+  if (filter.includes('blur')) {
+    const match = filter.match(/blur\((\d+)px\)/);
+    if (match) {
+      const val = parseInt(match[1] || '0');
+      if (val <= 4) classes.push('backdrop-blur-sm');
+      else if (val <= 8) classes.push('backdrop-blur');
+      else if (val <= 12) classes.push('backdrop-blur-md');
+      else if (val <= 16) classes.push('backdrop-blur-lg');
+      else if (val <= 24) classes.push('backdrop-blur-xl');
+      else classes.push(`backdrop-blur-[${val}px]`);
+    }
+  }
+  
+  if (filter.includes('brightness')) {
+    const match = filter.match(/brightness\(([\d.]+)\)/);
+    if (match) {
+      const val = parseFloat(match[1] || '1');
+      if (val !== 1) classes.push(`backdrop-brightness-[${Math.round(val * 100)}%]`);
+    }
+  }
+  
+  if (filter.includes('saturate')) {
+    const match = filter.match(/saturate\(([\d.]+)\)/);
+    if (match) {
+      const val = parseFloat(match[1] || '1');
+      if (val !== 1) classes.push(`backdrop-saturate-[${Math.round(val * 100)}%]`);
+    }
+  }
+  
+  if (filter.includes('grayscale')) classes.push('backdrop-grayscale');
+  if (filter.includes('sepia')) classes.push('backdrop-sepia');
+  if (filter.includes('invert')) classes.push('backdrop-invert');
+  
+  return classes.join(' ');
+}
+
+function getMixBlendModeClass(mode: string): string {
+  if (mode === 'normal') return '';
+  const map: Record<string, string> = {
+    'multiply': 'mix-blend-multiply',
+    'screen': 'mix-blend-screen',
+    'overlay': 'mix-blend-overlay',
+    'darken': 'mix-blend-darken',
+    'lighten': 'mix-blend-lighten',
+    'color-dodge': 'mix-blend-color-dodge',
+    'color-burn': 'mix-blend-color-burn',
+    'hard-light': 'mix-blend-hard-light',
+    'soft-light': 'mix-blend-soft-light',
+    'difference': 'mix-blend-difference',
+    'exclusion': 'mix-blend-exclusion',
+    'hue': 'mix-blend-hue',
+    'saturation': 'mix-blend-saturation',
+    'color': 'mix-blend-color',
+    'luminosity': 'mix-blend-luminosity',
+  };
+  return map[mode] || '';
+}
+
+// ============ BACKGROUND UTILITIES ============
+
+function getBackgroundImageClass(bg: string): string {
+  if (!bg || bg === 'none') return '';
+  
+  // Linear gradient
+  if (bg.includes('linear-gradient')) {
+    // Extract direction
+    const dirMatch = bg.match(/linear-gradient\((to\s+\w+|[\d.]+deg)/);
+    let dir = '';
+    if (dirMatch) {
+      const d = dirMatch[1];
+      if (d === 'to right') dir = 'bg-gradient-to-r';
+      else if (d === 'to left') dir = 'bg-gradient-to-l';
+      else if (d === 'to bottom') dir = 'bg-gradient-to-b';
+      else if (d === 'to top') dir = 'bg-gradient-to-t';
+      else if (d === 'to bottom right' || d === '135deg') dir = 'bg-gradient-to-br';
+      else if (d === 'to bottom left') dir = 'bg-gradient-to-bl';
+      else if (d === 'to top right') dir = 'bg-gradient-to-tr';
+      else if (d === 'to top left') dir = 'bg-gradient-to-tl';
+      else dir = `bg-[linear-gradient(${d},...)]`;
+    } else {
+      dir = 'bg-gradient-to-r'; // Default
+    }
+    return dir;
+  }
+  
+  // Radial gradient
+  if (bg.includes('radial-gradient')) {
+    return 'bg-[radial-gradient(...)]';
+  }
+  
+  // URL (image)
+  if (bg.includes('url(')) {
+    return 'bg-[url(...)]';
+  }
+  
+  return '';
+}
+
+// ============ SVG UTILITIES ============
+
+function getFillClass(fill: string): string {
+  if (!fill || fill === 'none') return 'fill-none';
+  const hex = rgbToHex(fill);
+  if (hex === '#000000') return 'fill-black';
+  if (hex === '#ffffff') return 'fill-white';
+  return `fill-[${hex}]`;
+}
+
+function getStrokeClass(stroke: string): string {
+  if (!stroke || stroke === 'none') return '';
+  const hex = rgbToHex(stroke);
+  if (hex === '#000000') return 'stroke-black';
+  if (hex === '#ffffff') return 'stroke-white';
+  return `stroke-[${hex}]`;
+}
+
+function getStrokeWidthClass(width: string): string {
+  const val = parseFloat(width);
+  if (isNaN(val) || val === 0) return '';
+  if (val === 1) return 'stroke-1';
+  if (val === 2) return 'stroke-2';
+  return `stroke-[${val}]`;
+}
+
+// ============ INTERACTION & PERFORMANCE UTILITIES ============
+
+function getUserSelectClass(val: string): string {
+  if (val === 'auto') return '';
+  const map: Record<string, string> = {
+    'none': 'select-none',
+    'text': 'select-text',
+    'all': 'select-all',
+    'auto': 'select-auto',
+  };
+  return map[val] || '';
+}
+
+function getPointerEventsClass(val: string): string {
+  if (val === 'auto') return '';
+  if (val === 'none') return 'pointer-events-none';
+  return '';
+}
+
+function getWillChangeClass(val: string): string {
+  if (val === 'auto') return '';
+  const map: Record<string, string> = {
+    'scroll-position': 'will-change-scroll',
+    'contents': 'will-change-contents',
+    'transform': 'will-change-transform',
+  };
+  return map[val] || `will-change-[${val}]`;
+}
+
+function getResizeClass(val: string): string {
+    if (val === 'none') return '';
+    const map: Record<string, string> = {
+        'vertical': 'resize-y',
+        'horizontal': 'resize-x',
+        'both': 'resize',
+        'none': 'resize-none'
+    };
+    return map[val] || '';
+}
+
+// ============ ADVANCED GEOMETRY & SCROLL ============
+
+function getTransformOriginClass(val: string): string {
+  if (val === '50% 50%' || val === 'center') return ''; // Default
+  
+  // Tailwind uses keywords like 'top-left', 'bottom', etc.
+  // Converting '50% 100%' -> 'bottom' is tricky without fuzzy matching logic.
+  // We will map exactly common keywords if browser returns them, or arbitrary.
+  const map: Record<string, string> = {
+      'center': 'origin-center',
+      'top': 'origin-top',
+      'top right': 'origin-top-right',
+      'right': 'origin-right',
+      'bottom right': 'origin-bottom-right',
+      'bottom': 'origin-bottom',
+      'bottom left': 'origin-bottom-left',
+      'left': 'origin-left',
+      'top left': 'origin-top-left',
+  };
+  if (map[val]) return map[val];
+  return `origin-[${val.replace(/ /g, '_')}]`;
+}
+
+function getClipPathClass(val: string): string {
+    if (!val || val === 'none') return '';
+    // Clip paths are complex, usually become arbitrary values
+    return `clip-[${val}]`; // Not standard Tailwind utility, but understandable
+}
+
+function getScrollSnapTypeClass(val: string): string {
+    if (val === 'none') return '';
+    if (val.includes('x')) return 'snap-x';
+    if (val.includes('y')) return 'snap-y';
+    if (val.includes('both')) return 'snap-both';
+    return '';
+}
+
+function getScrollSnapAlignClass(val: string): string {
+    if (val === 'none') return '';
+    const map: Record<string, string> = {
+        'start': 'snap-start',
+        'end': 'snap-end',
+        'center': 'snap-center',
+        'align-none': 'snap-none',
+    };
+    return map[val] || '';
+}
+
 function getFilterClass(filter: string): string {
   if (!filter || filter === 'none') return '';
   
@@ -331,6 +607,10 @@ export function cssToTailwind(styles: CSSStyleDeclaration, width: number, height
   }
   else if (display === 'grid') {
     classes.push('grid');
+    classes.push(getGridColumnsClass(styles.gridTemplateColumns));
+    classes.push(getGridRowsClass(styles.gridTemplateRows));
+    classes.push(getPlaceItemsClass(styles.placeItems));
+    classes.push(getPlaceContentClass(styles.placeContent));
     if (styles.gap !== '0px') classes.push(getSpacing(styles.gap, 'gap'));
   }
   else if (display === 'inline-grid') classes.push('inline-grid');
@@ -457,6 +737,30 @@ export function cssToTailwind(styles: CSSStyleDeclaration, width: number, height
 
   // === INTERACTION ===
   classes.push(getCursorClass(styles.cursor));
+
+  // === BACKDROP & BLEND ===
+  classes.push(getBackdropFilterClass(styles.backdropFilter));
+  classes.push(getMixBlendModeClass(styles.mixBlendMode));
+
+  // === BACKGROUND IMAGE/GRADIENT ===
+  classes.push(getBackgroundImageClass(styles.backgroundImage));
+
+  // === SVG ===
+  classes.push(getFillClass(styles.fill));
+  classes.push(getStrokeClass(styles.stroke));
+  classes.push(getStrokeWidthClass(styles.strokeWidth));
+
+  // === INTERACTION & PERFORMANCE ===
+  classes.push(getUserSelectClass(styles.userSelect));
+  classes.push(getPointerEventsClass(styles.pointerEvents));
+  classes.push(getResizeClass(styles.resize));
+  classes.push(getWillChangeClass(styles.willChange));
+
+  // === ADVANCED GEOMETRY ===
+  classes.push(getTransformOriginClass(styles.transformOrigin));
+  classes.push(getClipPathClass(styles.clipPath));
+  classes.push(getScrollSnapTypeClass(styles.scrollSnapType));
+  classes.push(getScrollSnapAlignClass(styles.scrollSnapAlign));
 
   return classes.filter(Boolean).join(' ');
 }

@@ -203,8 +203,9 @@ export class InspectorUI {
     tagName: string, 
     isLocked: boolean
     element: HTMLElement
+    layerDepth?: number
   }) {
-    const { rect, styles, tagName, isLocked, element } = params;
+    const { rect, styles, tagName, isLocked, element, layerDepth = 0 } = params;
 
     const tailwindClasses = cssToTailwind(styles, rect.width, rect.height);
     this.activeStyles = tailwindClasses;
@@ -427,9 +428,65 @@ export class InspectorUI {
         <span class="label">Cursor</span>
         <span class="value">${styles.cursor}</span>
       </div>` : ''}
+      
+      ${styles.display === 'grid' ? `
+      <div class="sep"></div>
+      ${styles.gridTemplateColumns !== 'none' ? `
+      <div class="row interactive-row" data-copy="grid-template-columns: ${styles.gridTemplateColumns};" title="Click to Copy">
+        <span class="label">Grid Cols</span>
+        <span class="value" title="${styles.gridTemplateColumns}">Yes</span>
+      </div>` : ''}
+      ${styles.gridTemplateRows !== 'none' ? `
+      <div class="row interactive-row" data-copy="grid-template-rows: ${styles.gridTemplateRows};" title="Click to Copy">
+        <span class="label">Grid Rows</span>
+        <span class="value" title="${styles.gridTemplateRows}">Yes</span>
+      </div>` : ''}
+      ` : ''}
+      
+      ${styles.backdropFilter !== 'none' ? `
+      <div class="row interactive-row" data-copy="backdrop-filter: ${styles.backdropFilter};" title="Click to Copy Backdrop Filter">
+        <span class="label">Backdrop</span>
+        <span class="value" title="${styles.backdropFilter}">Yes</span>
+      </div>` : ''}
+      
+      ${styles.mixBlendMode !== 'normal' ? `
+      <div class="row">
+        <span class="label">Blend</span>
+        <span class="value">${styles.mixBlendMode}</span>
+      </div>` : ''}
+      
+      ${styles.backgroundImage !== 'none' ? `
+      <div class="row interactive-row" data-copy="background-image: ${styles.backgroundImage};" title="Click to Copy Gradient/Image">
+        <span class="label">BG Image</span>
+        <span class="value" title="${styles.backgroundImage}">${styles.backgroundImage.includes('gradient') ? 'Gradient' : 'Image'}</span>
+      </div>` : ''}
+      
+      ${styles.clipPath !== 'none' ? `
+      <div class="row interactive-row" data-copy="clip-path: ${styles.clipPath};" title="Click to Copy Clip Path">
+        <span class="label">Clip Path</span>
+        <span class="value" title="${styles.clipPath}">Yes</span>
+      </div>` : ''}
+      
+      ${(styles.scrollSnapType !== 'none' || styles.scrollSnapAlign !== 'none') ? `
+      <div class="row">
+        <span class="label">Scroll</span>
+        <span class="value">Snap</span>
+      </div>` : ''}
+
+      ${styles.willChange !== 'auto' ? `
+      <div class="row">
+        <span class="label">Optimize</span>
+        <span class="value">${styles.willChange}</span>
+      </div>` : ''}
+      
+      ${(styles.userSelect !== 'auto' || styles.pointerEvents !== 'auto') ? `
+      <div class="row">
+        <span class="label">Interact</span>
+        <span class="value">${styles.pointerEvents === 'none' ? 'No Pointer' : styles.userSelect}</span>
+      </div>` : ''}
 
       <div class="lock-hint">
-        ${isLocked ? 'LOCKED' : 'SPACE to Lock'}
+        ${layerDepth > 0 ? `<span style="color:#facc15">X-RAY L${layerDepth}</span> | ` : ''}${isLocked ? 'LOCKED' : 'SHIFT+] Deeper'}
       </div>
     `;
   }
