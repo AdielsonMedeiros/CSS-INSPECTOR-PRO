@@ -13,7 +13,8 @@ export class InspectorUI {
   private shadow: ShadowRoot;
   private highlightEl: HTMLElement;
   private cardEl: HTMLElement;
-  private activeStyles: string = '';
+  private activeStyles: string = '';  // Tailwind classes
+  private activeCss: string = '';     // Raw CSS
 
 
   constructor() {
@@ -43,6 +44,12 @@ export class InspectorUI {
     if (target.closest('.tw-badge')) {
       const badge = target.closest('.tw-badge') as HTMLElement;
       this.copyToClipboard(this.activeStyles, badge);
+    }
+    
+    // Copy CSS
+    if (target.closest('.css-badge')) {
+      const badge = target.closest('.css-badge') as HTMLElement;
+      this.copyToClipboard(this.activeCss, badge);
     }
     
     // Generic Copy Row (Source, Shadow, Effects)
@@ -123,6 +130,8 @@ export class InspectorUI {
         width: max-content;
         max-width: 320px;
         min-width: 240px;
+        max-height: 85vh;
+        overflow-y: auto;
       }
 
       .inspector-card.visible { display: block; animation: fadeIn 0.1s ease-out; }
@@ -140,18 +149,17 @@ export class InspectorUI {
       .value.success { color: #10b981; }
       .accent { color: #60a5fa; }
       
-      .tw-badge {
+      .tw-badge, .css-badge {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 12px;
-        background: #3b82f6;
         color: white;
         padding: 8px 10px;
         border-radius: 6px;
         font-size: 11px;
         font-family: 'Menlo', monospace;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         width: 100%;
         text-align: left;
         cursor: pointer;
@@ -159,9 +167,12 @@ export class InspectorUI {
         font-weight: 500;
         transition: background 0.2s, transform 0.1s;
       }
-      .tw-badge:hover { opacity: 0.95; }
-      .tw-badge:active { transform: scale(0.98); }
-      .tw-badge.copied { background: #10b981; }
+      .tw-badge { background: #3b82f6; }
+      .css-badge { background: #ec4899; } /* Pink-500 */
+      
+      .tw-badge:hover, .css-badge:hover { opacity: 0.95; }
+      .tw-badge:active, .css-badge:active { transform: scale(0.98); }
+      .tw-badge.copied, .css-badge.copied { background: #10b981; }
 
       .tw-content {
         white-space: pre-wrap; 
@@ -192,6 +203,33 @@ export class InspectorUI {
       .color-preview { width: 10px; height: 10px; border-radius: 2px; border: 1px solid #444; display: inline-block; vertical-align: middle; margin-right: 6px; }
       .lock-hint { font-size: 9px; color: #555; text-align: right; margin-top: 6px; }
 
+      /* Custom Scrollbar - Dark Theme */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        transition: background 0.2s;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.35);
+      }
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+      
+      /* Firefox scrollbar */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+      }
+
       @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     `;
     this.shadow.appendChild(style);
@@ -209,7 +247,33 @@ export class InspectorUI {
 
     const tailwindClasses = cssToTailwind(styles, rect.width, rect.height);
     this.activeStyles = tailwindClasses;
+
+    // Generate Raw CSS (simplified set of common properties)
+    const cssProps = [
+        'display', 'position', 'top', 'right', 'bottom', 'left', 'z-index',
+        'width', 'height', 'margin', 'padding',
+        'font-family', 'font-size', 'font-weight', 'line-height', 'color', 'text-align',
+        'background-color', 'background-image', 'border', 'border-radius',
+        'box-shadow', 'opacity', 'visibility',
+        'flex-direction', 'flex-wrap', 'align-items', 'justify-content', 'gap',
+        'grid-template-columns', 'grid-template-rows',
+        'transform', 'transition', 'cursor', 'overflow', 'object-fit'
+    ];
     
+    // Filter and format CSS
+    this.activeCss = cssProps
+        .map(prop => {
+            const val = styles.getPropertyValue(prop);
+            // Basic filtering of default values to keep it clean
+            if (!val || val === 'auto' || val === 'none' || val === '0px' || val === 'normal' || val === 'rgba(0, 0, 0, 0)') return null;
+            if ((prop === 'position' && val === 'static') || (prop === 'display' && val === 'block')) return null;
+            return `${prop}: ${val};`;
+        })
+        .filter(Boolean)
+        .join('\n'); // Quebra de linha aqui!
+    
+    if (!this.activeCss) this.activeCss = '/* No significant styles */';
+
     // Standard Props
     const fontFamily = (styles.fontFamily || '').split(',')[0]?.replace(/['"]/g, '') || 'System';
     const fontSize = Math.round(parseFloat(styles.fontSize));
@@ -297,8 +361,13 @@ export class InspectorUI {
     this.cardEl.style.left = `${left}px`;
 
     this.cardEl.innerHTML = `
-      <div class="tw-badge" title="Click to copy">
+      <div class="tw-badge" title="Click to copy Tailwind">
         <div class="tw-content">${tailwindClasses || 'No styles detected'}</div>
+        <div class="icon-box">${COPY_ICON}</div>
+      </div>
+
+      <div class="css-badge" title="Click to copy CSS">
+        <div class="tw-content">${this.activeCss}</div>
         <div class="icon-box">${COPY_ICON}</div>
       </div>
       

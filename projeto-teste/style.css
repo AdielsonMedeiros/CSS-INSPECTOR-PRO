@@ -1,0 +1,44 @@
+
+/* Colando o CSS extraído pelo Inspector */
+.billy-style {
+  display: inline;
+  position: relative;
+  width: 400px;
+  height: 400px;
+  
+  /* Font props (opcionais para img, mas vieram na cópia) */
+  font-family: Poppins, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: rgb(0, 0, 0);
+  text-align: start;
+
+  /* Estilos principais */
+  border: 2px solid rgba(138, 43, 226, 0.208); /* Ajustei a cor baseada no original */
+  border-radius: 50%;
+  box-shadow: rgba(138, 43, 226, 0.3) 0px 20px 60px 0px;
+  opacity: 1;
+  visibility: visible;
+  
+  /* Flex props (opcionais) */
+  flex-direction: row;
+  flex-wrap: nowrap;
+  
+  /* Animações e transformações */
+  /* transform: matrix(1, 0, 0, 1, 0, -2.99058);  <- Removendo transformação fixa de momento para não deslocar */
+  transition: transform 0.8s, opacity 0.4s;
+  
+  cursor: pointer;
+  overflow: clip;
+  object-fit: cover;
+}
+
+/* Centralizando apenas para visualização */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #111;
+  margin: 0;
+}

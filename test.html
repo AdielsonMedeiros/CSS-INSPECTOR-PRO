@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Inspector Pro - Test Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom CSS for properties Tailwind sometimes abstracts */
+    .custom-scroll {
+      scroll-behavior: smooth;
+      scroll-padding-top: 50px;
+      scrollbar-width: thin;
+      scrollbar-color: #888 #f1f1f1;
+    }
+    
+    .svg-path {
+      fill-opacity: 0.5;
+      stroke-opacity: 0.8;
+      stroke-dasharray: 10, 5;
+      stroke-linecap: round;
+      stroke-linejoin: bevel;
+    }
+
+    .columns-test {
+      column-count: 3;
+      column-gap: 2rem;
+      column-rule: 2px solid #ccc;
+    }
+
+    .text-advanced {
+      text-wrap: balance;
+      hyphens: auto;
+      text-decoration-line: underline;
+      text-decoration-style: wavy;
+      text-decoration-color: red;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
+    }
+
+    .interactive {
+      outline: 4px dashed #3b82f6;
+      outline-offset: 4px;
+      cursor: crosshair;
+      caret-color: #ec4899;
+      accent-color: #10b981;
+    }
+
+    .isolation-test {
+      isolation: isolate;
+      inset: 0;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-200 p-10 font-sans">
+  <div class="max-w-4xl mx-auto space-y-12">
+    
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-pink-500 bg-clip-text text-transparent mb-4">
+        CSS Inspector Test Lab
+      </h1>
+      <p class="text-slate-400">Abra o inspector e passe o mouse sobre os elementos abaixo!</p>
+    </header>
+
+    <!-- 1. SVG Advanced -->
+    <section class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+      <h2 class="text-xl font-semibold mb-4 text-pink-400">1. SVG Advanced Props</h2>
+      <svg width="200" height="100" viewBox="0 0 200 100" class="border border-slate-600 bg-slate-900 rounded">
+        <path d="M10 50 Q 50 10 100 50 T 190 50" 
+              fill="none" 
+              stroke="#60a5fa" 
+              stroke-width="5"
+              class="svg-path" />
+        <circle cx="50" cy="50" r="30" fill="#ec4899" class="svg-path" />
+      </svg>
+      <p class="mt-2 text-sm text-slate-500">Inspect path & circle for stroke/fill opacity & dasharray</p>
+    </section>
+
+    <!-- 2. Typography & Decoration -->
+    <section class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+      <h2 class="text-xl font-semibold mb-4 text-blue-400">2. Typography Extra</h2>
+      <div class="columns-test mb-6 text-sm text-justify">
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+        <p>Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.</p>
+      </div>
+      
+      <h3 class="text-2xl font-bold text-advanced w-1/2 mx-auto text-center border p-4">
+        Este é um Título com Balanceamento de Texto e Decoração Wavy
+      </h3>
+    </section>
+
+    <!-- 3. Scroll & Interaction -->
+    <section class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+      <h2 class="text-xl font-semibold mb-4 text-green-400">3. Interaction & Scroll</h2>
+      
+      <div class="flex gap-4 items-start">
+        <div class="h-40 w-full overflow-y-auto custom-scroll bg-slate-900 p-4 border border-slate-600 rounded">
+          <p class="mb-4">Role para baixo para ver o efeito smooth scroll e padding.</p>
+          <div class="h-96 bg-gradient-to-b from-blue-900 to-purple-900 rounded"></div>
+          <p id="target" class="mt-4 p-2 bg-green-900 text-green-100 rounded">Target Element!</p>
+        </div>
+
+        <div class="w-full space-y-4">
+          <input type="text" value="Inspect my caret color!" class="interactive w-full bg-slate-700 p-3 rounded text-lg focus:outline-none">
+          
+          <div class="flex items-center gap-2">
+            <input type="checkbox" checked class="w-6 h-6 interactive"> 
+            <span>Custom Accent Color</span>
+          </div>
+          
+          <button class="bg-blue-600 px-4 py-2 rounded shadow-lg hover:shadow-cyan-500/50 transition duration-300 transform hover:scale-105 active:scale-95">
+            Hover & Click Me
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Flex & Order -->
+    <section class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+      <h2 class="text-xl font-semibold mb-4 text-purple-400">4. Flex Order & Grow</h2>
+      <div class="flex gap-2 bg-slate-900 p-4 rounded min-h-[100px]">
+        <div class="p-4 bg-red-500 rounded text-center order-last flex-grow">1 (Order Last)</div>
+        <div class="p-4 bg-blue-500 rounded text-center order-first flex-grow-[2]">2 (Order First, Grow 2)</div>
+        <div class="p-4 bg-green-500 rounded text-center order-2">3 (Order 2)</div>
+      </div>
+    </section>
+
+  </div>
+  
+  <div class="h-20"></div>
+</body>
+</html>

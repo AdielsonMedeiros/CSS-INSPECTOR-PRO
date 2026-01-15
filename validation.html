@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validação de Estilos - CSS Inspector Pro</title>
+    <!-- 1. Tailwind via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 50px;
+            padding: 50px;
+        }
+        h2 { color: #38bdf8; margin-bottom: 20px; }
+        .container { text-align: center; }
+    </style>
+</head>
+<body>
+
+    <!-- EXEMPLO 1: TAILWIND CSS -->
+    <div class="container">
+        <h2>1. Versão Tailwind CSS</h2>
+        <!-- 
+           Colei suas classes aqui. 
+           Nota: Substituí os espaços dentro de shadow-[...] por underscore (_) 
+           pois o Tailwind não aceita espaços diretos na classe HTML.
+        -->
+        <img 
+            src="billypf.png" 
+            alt="Teste Tailwind"
+            class="relative inset-0 inline rounded-full border-2 border-[#8a2be2] shadow-[rgba(138,43,226,0.3)_0px_20px_60px_0px] object-cover aspect-square cursor-pointer will-change-transform outline-black decoration-[#000000] scroll-smooth caret-black hyphens-manual appearance-none box-decoration-slice box-border min-w-0 max-w-none min-h-0 max-h-none"
+        >
+    </div>
+
+    <!-- EXEMPLO 2: CSS PURO (INLINE) -->
+    <div class="container">
+        <h2>2. Versão CSS Puro</h2>
+        <!-- Colei seu CSS no atributo style e removi propriedades fixas de posição que poderiam quebrar o layout de teste -->
+        <img 
+            src="billypf.png" 
+            alt="Teste CSS"
+            style="display: inline; position: relative; width: 400px; height: 400px; font-family: Poppins, sans-serif; font-size: 16px; font-weight: 400; color: rgb(0, 0, 0); text-align: start; border: 2px solid rgba(138, 43, 226, 0.2); border-radius: 50%; box-shadow: rgba(138, 43, 226, 0.3) 0px 20px 60px 0px; opacity: 1; visibility: visible; flex-direction: row; flex-wrap: nowrap; transition: transform 0.8s, opacity 0.4s; cursor: pointer; overflow: clip; object-fit: cover;"
+        >
+        <!-- Nota: Removi o 'transform: matrix...' fixo do CSS para ele não ficar deslocado na tela de teste -->
+    </div>
+
+</body>
+</html>
