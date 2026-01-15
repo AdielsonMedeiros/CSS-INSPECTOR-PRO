@@ -6,7 +6,7 @@ import { InspectorUI } from './ui';
 
 class InspectorEngine {
   private ui: InspectorUI;
-  private isActive: boolean = true;
+  private isActive: boolean = false; // Sempre inicia desativado
   private currentTarget: HTMLElement | null = null;
   private isLocked: boolean = false;
   private lockedTarget: HTMLElement | null = null;
@@ -25,7 +25,10 @@ class InspectorEngine {
     this.ui = new InspectorUI();
     this.bindEvents();
     this.createWalkerPanel();
-    console.log('[CSS Inspector Pro] Engine Started (X-Ray + DOM Walker)');
+    
+    // Sempre inicia desativado - reseta o storage ao carregar nova página
+    chrome.storage?.local?.set({ inspectorActive: false });
+    console.log('[CSS Inspector Pro] Ready (Click extension icon to activate)');
   }
 
   private createWalkerPanel() {
@@ -58,10 +61,16 @@ class InspectorEngine {
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
     document.addEventListener('keyup', this.handleKeyUp.bind(this));
     
-    chrome.runtime.onMessage.addListener((msg) => {
+    chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       if (msg.action === 'TOGGLE_INSPECTOR') {
         this.toggleActive();
+        // Envia resposta com o novo estado
+        sendResponse({ isActive: this.isActive });
       }
+      if (msg.action === 'GET_STATE') {
+        sendResponse({ isActive: this.isActive });
+      }
+      return true; // Mantém o canal aberto para resposta assíncrona
     });
   }
 

@@ -505,6 +505,72 @@ export class InspectorUI {
         <span class="label">Interact</span>
         <span class="value">${styles.pointerEvents === 'none' ? 'No Pointer' : styles.userSelect}</span>
       </div>` : ''}
+      
+      ${styles.outlineStyle !== 'none' && parseFloat(styles.outlineWidth) > 0 ? `
+      <div class="row interactive-row" data-copy="outline: ${styles.outlineWidth} ${styles.outlineStyle} ${styles.outlineColor};" title="Click to Copy Outline">
+        <span class="label">Outline</span>
+        <span class="value">${styles.outlineWidth} ${styles.outlineStyle}</span>
+      </div>` : ''}
+      
+      ${styles.visibility !== 'visible' ? `
+      <div class="row">
+        <span class="label">Visibility</span>
+        <span class="value">${styles.visibility}</span>
+      </div>` : ''}
+      
+      ${styles.columnCount !== 'auto' ? `
+      <div class="row">
+        <span class="label">Columns</span>
+        <span class="value">${styles.columnCount}</span>
+      </div>` : ''}
+      
+      ${styles.touchAction !== 'auto' ? `
+      <div class="row">
+        <span class="label">Touch</span>
+        <span class="value">${styles.touchAction}</span>
+      </div>` : ''}
+      
+      ${styles.scrollBehavior === 'smooth' ? `
+      <div class="row">
+        <span class="label">Scroll</span>
+        <span class="value">Smooth</span>
+      </div>` : ''}
+      
+      ${styles.order !== '0' ? `
+      <div class="row">
+        <span class="label">Order</span>
+        <span class="value">${styles.order}</span>
+      </div>` : ''}
+      
+      ${styles.cssFloat !== 'none' ? `
+      <div class="row">
+        <span class="label">Float</span>
+        <span class="value">${styles.cssFloat}</span>
+      </div>` : ''}
+      
+      ${styles.isolation === 'isolate' ? `
+      <div class="row">
+        <span class="label">Isolation</span>
+        <span class="value">isolate</span>
+      </div>` : ''}
+      
+      ${styles.listStyleType !== 'none' && styles.listStyleType !== 'disc' ? `
+      <div class="row">
+        <span class="label">List</span>
+        <span class="value">${styles.listStyleType}</span>
+      </div>` : ''}
+      
+      ${styles.flexGrow !== '0' && styles.display === 'flex' ? `
+      <div class="row">
+        <span class="label">Grow</span>
+        <span class="value">${styles.flexGrow}</span>
+      </div>` : ''}
+      
+      ${styles.flexShrink !== '1' && styles.display === 'flex' ? `
+      <div class="row">
+        <span class="label">Shrink</span>
+        <span class="value">${styles.flexShrink}</span>
+      </div>` : ''}
 
       <div class="lock-hint">
         ${layerDepth > 0 ? `<span style="color:#facc15">X-RAY L${layerDepth}</span> | ` : ''}${isLocked ? 'LOCKED' : 'SHIFT+] Deeper'}
