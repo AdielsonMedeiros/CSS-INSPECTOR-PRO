@@ -455,11 +455,32 @@ export class InspectorUI {
         <span class="value">${styles.mixBlendMode}</span>
       </div>` : ''}
       
-      ${styles.backgroundImage !== 'none' ? `
-      <div class="row interactive-row" data-copy="background-image: ${styles.backgroundImage};" title="Click to Copy Gradient/Image">
-        <span class="label">BG Image</span>
-        <span class="value" title="${styles.backgroundImage}">${styles.backgroundImage.includes('gradient') ? 'Gradient' : 'Image'}</span>
-      </div>` : ''}
+      ${styles.backgroundImage !== 'none' ? (() => {
+        // Extract readable info from background-image
+        let bgDisplay = '';
+        if (styles.backgroundImage.includes('linear-gradient')) {
+          bgDisplay = 'linear-gradient(...)';
+        } else if (styles.backgroundImage.includes('radial-gradient')) {
+          bgDisplay = 'radial-gradient(...)';
+        } else if (styles.backgroundImage.includes('url(')) {
+          // Extract filenames from URLs
+          const urls = styles.backgroundImage.match(/url\([^)]+\)/g) || [];
+          const filenames = urls.map(u => {
+            const match = u.match(/\/([^\/\)]+)\)/);
+            return match?.[1]?.substring(0, 20) || 'image';
+          });
+          bgDisplay = filenames.length > 1 ? `${filenames.length} images` : filenames[0] || 'image';
+        } else {
+          bgDisplay = 'custom';
+        }
+        // Escape quotes for HTML attributes
+        const cssValue = `background-image: ${styles.backgroundImage};`;
+        return `
+        <div class="row interactive-row" data-copy="${cssValue.replace(/"/g, '&quot;')}" title="Click to copy full CSS">
+          <span class="label">BG Image</span>
+          <span class="value">${bgDisplay}</span>
+        </div>`;
+      })() : ''}
       
       ${styles.clipPath !== 'none' ? `
       <div class="row interactive-row" data-copy="clip-path: ${styles.clipPath};" title="Click to Copy Clip Path">

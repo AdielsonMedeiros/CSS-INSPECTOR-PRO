@@ -99,13 +99,14 @@ export const getLineHeight = (lh: string, fontSize: string): string => {
 };
 
 export const getLetterSpacing = (ls: string): string => {
+  if (!ls || ls === 'normal') return '';
   const val = parseFloat(ls);
-  if (val === 0) return '';
+  if (isNaN(val) || val === 0) return '';
   if (val < 0) return 'tracking-tight';
   if (val > 0 && val <= 0.5) return 'tracking-normal';
   if (val > 0.5 && val <= 1) return 'tracking-wide';
   if (val > 1) return 'tracking-wider';
-  return `tracking-[${ls}]`;
+  return '';
 };
 
 // ============ EFFECTS UTILITIES ============
@@ -165,10 +166,10 @@ function getCursorClass(cursor: string): string {
 }
 
 function getObjectFitClass(fit: string): string {
+  if (!fit || fit === 'fill') return ''; // fill is default, skip it
   const map: Record<string, string> = {
     'contain': 'object-contain',
     'cover': 'object-cover',
-    'fill': 'object-fill',
     'none': 'object-none',
     'scale-down': 'object-scale-down',
   };
@@ -346,7 +347,20 @@ function getBackgroundImageClass(bg: string): string {
   
   // URL (image)
   if (bg.includes('url(')) {
-    return 'bg-[url(...)]';
+    // Extract filenames from URLs for readability
+    const urls = bg.match(/url\(["']?([^"')]+)["']?\)/g) || [];
+    if (urls.length === 0) return 'bg-[url(...)]';
+    
+    const filenames = urls.map(u => {
+      const match = u.match(/\/([^\/?"']+)(?:\?[^"']*)?["']?\)$/);
+      return match?.[1] || 'image';
+    });
+    
+    if (filenames.length === 1) {
+      return `bg-[url(${filenames[0]})]`;
+    } else {
+      return `bg-[${filenames.length}x url(...)]`;
+    }
   }
   
   return '';
@@ -355,9 +369,10 @@ function getBackgroundImageClass(bg: string): string {
 // ============ SVG UTILITIES ============
 
 function getFillClass(fill: string): string {
-  if (!fill || fill === 'none') return 'fill-none';
+  // Only apply to SVG elements - we'll check in main function
+  if (!fill || fill === 'none' || fill === 'rgb(0, 0, 0)') return '';
   const hex = rgbToHex(fill);
-  if (hex === '#000000') return 'fill-black';
+  if (hex === '#000000') return ''; // Default black, skip
   if (hex === '#ffffff') return 'fill-white';
   return `fill-[${hex}]`;
 }
@@ -365,15 +380,14 @@ function getFillClass(fill: string): string {
 function getStrokeClass(stroke: string): string {
   if (!stroke || stroke === 'none') return '';
   const hex = rgbToHex(stroke);
-  if (hex === '#000000') return 'stroke-black';
+  if (hex === '#000000' || hex === 'transparent') return ''; // Skip defaults
   if (hex === '#ffffff') return 'stroke-white';
   return `stroke-[${hex}]`;
 }
 
 function getStrokeWidthClass(width: string): string {
   const val = parseFloat(width);
-  if (isNaN(val) || val === 0) return '';
-  if (val === 1) return 'stroke-1';
+  if (isNaN(val) || val === 0 || val === 1) return ''; // 1 is often default
   if (val === 2) return 'stroke-2';
   return `stroke-[${val}]`;
 }
@@ -421,11 +435,9 @@ function getResizeClass(val: string): string {
 // ============ ADVANCED GEOMETRY & SCROLL ============
 
 function getTransformOriginClass(val: string): string {
-  if (val === '50% 50%' || val === 'center') return ''; // Default
+  // Skip complex pixel values, only map common keywords
+  if (!val || val === '50% 50%' || val === 'center' || val.includes('px')) return '';
   
-  // Tailwind uses keywords like 'top-left', 'bottom', etc.
-  // Converting '50% 100%' -> 'bottom' is tricky without fuzzy matching logic.
-  // We will map exactly common keywords if browser returns them, or arbitrary.
   const map: Record<string, string> = {
       'center': 'origin-center',
       'top': 'origin-top',
@@ -437,8 +449,7 @@ function getTransformOriginClass(val: string): string {
       'left': 'origin-left',
       'top left': 'origin-top-left',
   };
-  if (map[val]) return map[val];
-  return `origin-[${val.replace(/ /g, '_')}]`;
+  return map[val] || '';
 }
 
 function getClipPathClass(val: string): string {
