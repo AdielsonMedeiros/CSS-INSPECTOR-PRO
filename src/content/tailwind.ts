@@ -1,11 +1,10 @@
 /**
- * Utility to convert raw CSS values to Tailwind classes.
- * Focuses on Human-Readable standard classes over arbitrary values.
+ * CSS Inspector Pro - Tailwind Converter Engine V2
+ * Comprehensive CSS to Tailwind conversion with high precision.
  */
 
+// ============ COLOR UTILITIES ============
 
-
-// Named Colors Map (Simplified for MVP)
 const NAMED_COLORS: Record<string, string> = {
   '#000000': 'black',
   '#ffffff': 'white',
@@ -14,18 +13,22 @@ const NAMED_COLORS: Record<string, string> = {
   '#3b82f6': 'blue-500',
   '#10b981': 'green-500',
   '#f59e0b': 'amber-500',
-  // Add more as needed or use a library like 'nearest-color' in future
+  '#8b5cf6': 'violet-500',
+  '#ec4899': 'pink-500',
+  '#06b6d4': 'cyan-500',
+  '#f97316': 'orange-500',
+  '#84cc16': 'lime-500',
+  '#14b8a6': 'teal-500',
+  '#6366f1': 'indigo-500',
 };
 
 export function rgbToHex(rgb: string): string {
   if (!rgb || rgb === 'transparent' || rgb === 'rgba(0, 0, 0, 0)') return 'transparent';
   if (rgb.startsWith('#')) return rgb;
 
-  // Extrai o que está dentro dos parênteses: rgb(1, 2, 3) -> "1, 2, 3"
   const match = rgb.match(/\((.*?)\)/);
   if (!match || !match[1]) return 'transparent';
 
-  // Divide por vírgula, barra ou espaço e limpa vazios
   const parts = match[1].split(/[,/ ]+/).filter(Boolean);
 
   const r = parseInt(parts[0] || '0').toString(16).padStart(2, '0');
@@ -37,183 +40,423 @@ export function rgbToHex(rgb: string): string {
 
 export function getColorClass(prop: 'text' | 'bg' | 'border', hex: string): string {
   if (hex === 'transparent') return `${prop}-transparent`;
-  
   const named = NAMED_COLORS[hex.toLowerCase()];
   if (named) return `${prop}-${named}`;
-  
-  return `${prop}-[${hex}]`; // Fallback to arbitrary
+  return `${prop}-[${hex}]`;
 }
+
+// ============ SPACING UTILITIES ============
 
 export const getSpacing = (px: string, prefix: string): string => {
   const val = parseFloat(px);
   if (val === 0 || isNaN(val)) return '';
   
-  // Tailwind Scale (px -> unit)
-  // 1 = 4px, 4 = 16px, etc.
   const units = val / 4;
   
-  // Checking common breakpoints
-  if (units === 0.5) return `${prefix}-0.5`; // 2px
-  if (units === 1.5) return `${prefix}-1.5`; // 6px
-  if (units === 2.5) return `${prefix}-2.5`; // 10px
-  if (Number.isInteger(units)) return `${prefix}-${units}`;
-  
-  // If extremely close to integer (browser rendering weirdness), snap it
+  if (units === 0.5) return `${prefix}-0.5`;
+  if (units === 1.5) return `${prefix}-1.5`;
+  if (units === 2.5) return `${prefix}-2.5`;
+  if (Number.isInteger(units) && units <= 96) return `${prefix}-${units}`;
   if (Math.abs(units - Math.round(units)) < 0.1) return `${prefix}-${Math.round(units)}`;
 
   return `${prefix}-[${val}px]`;
 };
 
+// ============ TYPOGRAPHY UTILITIES ============
+
 export const getFontSize = (px: string): string => {
   const size = parseFloat(px);
-  // Default browser size is usually 16px
-  if (size === 16) return 'text-base';
-  if (size === 14) return 'text-sm';
-  if (size === 12) return 'text-xs';
-  if (size === 18) return 'text-lg';
-  if (size === 20) return 'text-xl';
-  if (size === 24) return 'text-2xl';
-  if (size === 30) return 'text-3xl';
-  if (size === 36) return 'text-4xl';
-  if (size === 48) return 'text-5xl';
-  
-  return `text-[${size}px]`;
+  const map: Record<number, string> = {
+    10: 'text-[10px]', 12: 'text-xs', 14: 'text-sm', 16: 'text-base',
+    18: 'text-lg', 20: 'text-xl', 24: 'text-2xl', 30: 'text-3xl',
+    36: 'text-4xl', 48: 'text-5xl', 60: 'text-6xl', 72: 'text-7xl',
+  };
+  return map[size] || `text-[${size}px]`;
 };
 
 export const getFontWeight = (weight: string): string => {
-  // Convert standard weights names
   const map: Record<string, string> = {
-    '100': 'font-thin',
-    '200': 'font-extralight',
-    '300': 'font-light',
-    '400': 'font-normal',
-    '500': 'font-medium',
-    '600': 'font-semibold',
-    '700': 'font-bold',
-    '800': 'font-extrabold',
-    '900': 'font-black',
+    '100': 'font-thin', '200': 'font-extralight', '300': 'font-light',
+    '400': 'font-normal', '500': 'font-medium', '600': 'font-semibold',
+    '700': 'font-bold', '800': 'font-extrabold', '900': 'font-black',
   };
   return map[weight] || '';
 };
 
-// Helper para simplificar sombras
+export const getLineHeight = (lh: string, fontSize: string): string => {
+  const val = parseFloat(lh);
+  const fs = parseFloat(fontSize);
+  if (isNaN(val) || isNaN(fs)) return '';
+  
+  const ratio = val / fs;
+  if (ratio === 1) return 'leading-none';
+  if (ratio >= 1.2 && ratio <= 1.3) return 'leading-tight';
+  if (ratio >= 1.4 && ratio <= 1.5) return 'leading-normal';
+  if (ratio >= 1.6 && ratio <= 1.7) return 'leading-relaxed';
+  if (ratio >= 1.8) return 'leading-loose';
+  
+  return `leading-[${lh}]`;
+};
+
+export const getLetterSpacing = (ls: string): string => {
+  const val = parseFloat(ls);
+  if (val === 0) return '';
+  if (val < 0) return 'tracking-tight';
+  if (val > 0 && val <= 0.5) return 'tracking-normal';
+  if (val > 0.5 && val <= 1) return 'tracking-wide';
+  if (val > 1) return 'tracking-wider';
+  return `tracking-[${ls}]`;
+};
+
+// ============ EFFECTS UTILITIES ============
+
 function getShadowClass(shadow: string): string {
-    if (!shadow || shadow === 'none') return '';
-    // Simplificação: Tailwind tem sombras padrão (sm, md, lg, etc)
-    // Mapear exatamente é difícil, então vamos usar arbitrary value se for complexo
-    // Mas se for comum, tentamos aproximar (futuro). Por enquanto, arbitrary é mais seguro.
-    return `shadow-[${shadow.replace(/, /g, ',')}]`; 
+  if (!shadow || shadow === 'none') return '';
+  
+  // Try to match common shadows
+  if (shadow.includes('0px 1px 2px')) return 'shadow-sm';
+  if (shadow.includes('0px 4px 6px')) return 'shadow';
+  if (shadow.includes('0px 10px 15px')) return 'shadow-lg';
+  if (shadow.includes('0px 20px 25px')) return 'shadow-xl';
+  if (shadow.includes('0px 25px 50px')) return 'shadow-2xl';
+  
+  return `shadow-[${shadow.replace(/, /g, ',')}]`;
 }
+
+function getOpacityClass(opacity: string): string {
+  const val = parseFloat(opacity);
+  if (val === 1) return '';
+  const percent = Math.round(val * 100);
+  const standards = [0, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 100];
+  if (standards.includes(percent)) return `opacity-${percent}`;
+  return `opacity-[${val}]`;
+}
+
+function getOverflowClass(overflow: string): string {
+  if (overflow === 'visible') return '';
+  if (overflow === 'hidden') return 'overflow-hidden';
+  if (overflow === 'scroll') return 'overflow-scroll';
+  if (overflow === 'auto') return 'overflow-auto';
+  return '';
+}
+
+function getZIndexClass(z: string): string {
+  if (z === 'auto' || z === '0') return '';
+  const val = parseInt(z);
+  const standards = [10, 20, 30, 40, 50];
+  if (standards.includes(val)) return `z-${val}`;
+  return `z-[${val}]`;
+}
+
+function getCursorClass(cursor: string): string {
+  const map: Record<string, string> = {
+    'pointer': 'cursor-pointer',
+    'default': '',
+    'wait': 'cursor-wait',
+    'text': 'cursor-text',
+    'move': 'cursor-move',
+    'not-allowed': 'cursor-not-allowed',
+    'grab': 'cursor-grab',
+    'grabbing': 'cursor-grabbing',
+    'zoom-in': 'cursor-zoom-in',
+    'zoom-out': 'cursor-zoom-out',
+  };
+  return map[cursor] || '';
+}
+
+function getObjectFitClass(fit: string): string {
+  const map: Record<string, string> = {
+    'contain': 'object-contain',
+    'cover': 'object-cover',
+    'fill': 'object-fill',
+    'none': 'object-none',
+    'scale-down': 'object-scale-down',
+  };
+  return map[fit] || '';
+}
+
+function getAspectRatioClass(ratio: string): string {
+  if (ratio === 'auto') return '';
+  if (ratio === '1 / 1') return 'aspect-square';
+  if (ratio === '16 / 9') return 'aspect-video';
+  if (ratio === '4 / 3') return 'aspect-[4/3]';
+  return `aspect-[${ratio.replace(/ /g, '')}]`;
+}
+
+function getTextDecorationClass(deco: string): string {
+  if (deco === 'underline') return 'underline';
+  if (deco === 'overline') return 'overline';
+  if (deco === 'line-through') return 'line-through';
+  return '';
+}
+
+function getFilterClass(filter: string): string {
+  if (!filter || filter === 'none') return '';
+  
+  const classes: string[] = [];
+  
+  if (filter.includes('blur')) {
+    const match = filter.match(/blur\((\d+)px\)/);
+    if (match) {
+      const val = parseInt(match[1] || '0');
+      if (val <= 4) classes.push('blur-sm');
+      else if (val <= 8) classes.push('blur');
+      else if (val <= 12) classes.push('blur-md');
+      else if (val <= 16) classes.push('blur-lg');
+      else classes.push(`blur-[${val}px]`);
+    }
+  }
+  
+  if (filter.includes('grayscale')) classes.push('grayscale');
+  if (filter.includes('sepia')) classes.push('sepia');
+  if (filter.includes('invert')) classes.push('invert');
+  
+  if (filter.includes('brightness')) {
+    const match = filter.match(/brightness\(([\d.]+)\)/);
+    if (match) {
+      const val = parseFloat(match[1] || '1');
+      if (val !== 1) classes.push(`brightness-[${Math.round(val * 100)}%]`);
+    }
+  }
+  
+  if (filter.includes('contrast')) {
+    const match = filter.match(/contrast\(([\d.]+)\)/);
+    if (match) {
+      const val = parseFloat(match[1] || '1');
+      if (val !== 1) classes.push(`contrast-[${Math.round(val * 100)}%]`);
+    }
+  }
+  
+  if (filter.includes('saturate')) {
+    const match = filter.match(/saturate\(([\d.]+)\)/);
+    if (match) {
+      const val = parseFloat(match[1] || '1');
+      if (val !== 1) classes.push(`saturate-[${Math.round(val * 100)}%]`);
+    }
+  }
+  
+  return classes.join(' ');
+}
+
+function getTransformClasses(transform: string): string {
+  if (!transform || transform === 'none') return '';
+  
+  const classes: string[] = [];
+  
+  // Scale
+  const scaleMatch = transform.match(/scale\(([\d.]+)(?:,\s*([\d.]+))?\)/);
+  if (scaleMatch) {
+    const x = parseFloat(scaleMatch[1] || '1');
+    const y = scaleMatch[2] ? parseFloat(scaleMatch[2]) : x;
+    if (x === y && x !== 1) {
+      const percent = Math.round(x * 100);
+      classes.push(`scale-[${percent}%]`);
+    }
+  }
+  
+  // Rotate
+  const rotateMatch = transform.match(/rotate\(([-\d.]+)deg\)/);
+  if (rotateMatch) {
+    const deg = parseFloat(rotateMatch[1] || '0');
+    if (deg !== 0) {
+      const standards = [0, 1, 2, 3, 6, 12, 45, 90, 180];
+      if (standards.includes(Math.abs(deg))) {
+        classes.push(`rotate-${deg < 0 ? '-' : ''}${Math.abs(deg)}`);
+      } else {
+        classes.push(`rotate-[${deg}deg]`);
+      }
+    }
+  }
+  
+  // Translate
+  const translateMatch = transform.match(/translate(?:X|Y|3d)?\(([-\d.]+)(?:px|%)(?:,\s*([-\d.]+)(?:px|%))?\)/);
+  if (translateMatch) {
+    const x = parseFloat(translateMatch[1] || '0');
+    if (x !== 0) classes.push(`translate-x-[${x}px]`);
+  }
+  
+  // Skew
+  const skewMatch = transform.match(/skew(?:X|Y)?\(([-\d.]+)deg/);
+  if (skewMatch) {
+    const deg = parseFloat(skewMatch[1] || '0');
+    if (deg !== 0) classes.push(`skew-x-[${deg}deg]`);
+  }
+  
+  return classes.join(' ');
+}
+
+// ============ MAIN CONVERTER ============
 
 export function cssToTailwind(styles: CSSStyleDeclaration, width: number, height: number): string {
   const classes: string[] = [];
 
+  // === LAYOUT ===
   const display = styles.display;
   const pos = styles.position;
   
   if (pos === 'absolute') classes.push('absolute');
-  if (pos === 'fixed') classes.push('fixed');
-  if (pos === 'relative' && styles.zIndex !== 'auto') classes.push('relative'); 
+  else if (pos === 'fixed') classes.push('fixed');
+  else if (pos === 'sticky') classes.push('sticky');
+  else if (pos === 'relative') classes.push('relative');
   
+  // Z-Index
+  classes.push(getZIndexClass(styles.zIndex));
+  
+  // Display & Flex/Grid
   if (display === 'flex') {
     classes.push('flex');
     if (styles.flexDirection === 'column') classes.push('flex-col');
+    else if (styles.flexDirection === 'column-reverse') classes.push('flex-col-reverse');
+    else if (styles.flexDirection === 'row-reverse') classes.push('flex-row-reverse');
     if (styles.flexWrap === 'wrap') classes.push('flex-wrap');
+    else if (styles.flexWrap === 'wrap-reverse') classes.push('flex-wrap-reverse');
     
     if (styles.alignItems === 'center') classes.push('items-center');
     else if (styles.alignItems === 'flex-start') classes.push('items-start');
     else if (styles.alignItems === 'flex-end') classes.push('items-end');
+    else if (styles.alignItems === 'baseline') classes.push('items-baseline');
+    else if (styles.alignItems === 'stretch') classes.push('items-stretch');
     
     if (styles.justifyContent === 'center') classes.push('justify-center');
     else if (styles.justifyContent === 'space-between') classes.push('justify-between');
+    else if (styles.justifyContent === 'space-around') classes.push('justify-around');
+    else if (styles.justifyContent === 'space-evenly') classes.push('justify-evenly');
     else if (styles.justifyContent === 'flex-end') classes.push('justify-end');
+    else if (styles.justifyContent === 'flex-start') classes.push('justify-start');
 
     if (styles.gap !== '0px') classes.push(getSpacing(styles.gap, 'gap'));
   } 
-  else if (display === 'grid') {
-      classes.push('grid');
-      if (styles.gap !== '0px') classes.push(getSpacing(styles.gap, 'gap'));
+  else if (display === 'inline-flex') {
+    classes.push('inline-flex');
   }
+  else if (display === 'grid') {
+    classes.push('grid');
+    if (styles.gap !== '0px') classes.push(getSpacing(styles.gap, 'gap'));
+  }
+  else if (display === 'inline-grid') classes.push('inline-grid');
   else if (display === 'none') classes.push('hidden');
   else if (display === 'inline-block') classes.push('inline-block');
-  else if (display === 'block' && parseFloat(styles.width) > 0) {
-      // Intentionally empty
-  }
+  else if (display === 'inline') classes.push('inline');
 
+  // Overflow
+  classes.push(getOverflowClass(styles.overflow));
+
+  // === SPACING ===
   const sides = ['top', 'right', 'bottom', 'left'];
   const m = sides.map(s => parseFloat(styles.getPropertyValue(`margin-${s}`))) as [number, number, number, number];
   const p = sides.map(s => parseFloat(styles.getPropertyValue(`padding-${s}`))) as [number, number, number, number];
 
+  // Padding
   if (p[0] === p[1] && p[0] === p[2] && p[0] === p[3] && p[0] !== 0) {
-      classes.push(getSpacing(p[0].toString(), 'p'));
+    classes.push(getSpacing(p[0].toString(), 'p'));
   } else {
-      if(p[0] === p[2] && p[0] !== 0) classes.push(getSpacing(p[0].toString(), 'py'));
-      else {
-           if(p[0] !== 0) classes.push(getSpacing(p[0].toString(), 'pt'));
-           if(p[2] !== 0) classes.push(getSpacing(p[2].toString(), 'pb'));
-      }
-      if(p[1] === p[3] && p[1] !== 0) classes.push(getSpacing(p[1].toString(), 'px'));
-      else {
-           if(p[3] !== 0) classes.push(getSpacing(p[3].toString(), 'pl'));
-           if(p[1] !== 0) classes.push(getSpacing(p[1].toString(), 'pr'));
-      }
+    if(p[0] === p[2] && p[0] !== 0) classes.push(getSpacing(p[0].toString(), 'py'));
+    else {
+      if(p[0] !== 0) classes.push(getSpacing(p[0].toString(), 'pt'));
+      if(p[2] !== 0) classes.push(getSpacing(p[2].toString(), 'pb'));
+    }
+    if(p[1] === p[3] && p[1] !== 0) classes.push(getSpacing(p[1].toString(), 'px'));
+    else {
+      if(p[3] !== 0) classes.push(getSpacing(p[3].toString(), 'pl'));
+      if(p[1] !== 0) classes.push(getSpacing(p[1].toString(), 'pr'));
+    }
   }
 
+  // Margin
   if (m[0] === m[1] && m[0] === m[2] && m[0] === m[3] && m[0] !== 0) {
-      classes.push(getSpacing(m[0].toString(), 'm'));
+    classes.push(getSpacing(m[0].toString(), 'm'));
   } else {
-       if(m[0] === m[2] && m[0] !== 0) classes.push(getSpacing(m[0].toString(), 'my'));
-       if(m[1] === m[3] && m[1] !== 0) classes.push(getSpacing(m[1].toString(), 'mx'));
+    if(m[0] === m[2] && m[0] !== 0) classes.push(getSpacing(m[0].toString(), 'my'));
+    else {
+      if(m[0] !== 0) classes.push(getSpacing(m[0].toString(), 'mt'));
+      if(m[2] !== 0) classes.push(getSpacing(m[2].toString(), 'mb'));
+    }
+    if(m[1] === m[3] && m[1] !== 0) classes.push(getSpacing(m[1].toString(), 'mx'));
+    else {
+      if(m[3] !== 0) classes.push(getSpacing(m[3].toString(), 'ml'));
+      if(m[1] !== 0) classes.push(getSpacing(m[1].toString(), 'mr'));
+    }
   }
 
+  // === TYPOGRAPHY ===
   if (parseFloat(styles.fontSize) !== 16) classes.push(getFontSize(styles.fontSize));
   if (styles.fontWeight !== '400') classes.push(getFontWeight(styles.fontWeight));
   if (styles.fontStyle === 'italic') classes.push('italic');
   if (styles.textTransform === 'uppercase') classes.push('uppercase');
-  if (styles.textAlign !== 'start') classes.push(`text-${styles.textAlign}`);
+  else if (styles.textTransform === 'lowercase') classes.push('lowercase');
+  else if (styles.textTransform === 'capitalize') classes.push('capitalize');
+  
+  if (styles.textAlign === 'center') classes.push('text-center');
+  else if (styles.textAlign === 'right') classes.push('text-right');
+  else if (styles.textAlign === 'justify') classes.push('text-justify');
+  
+  classes.push(getLineHeight(styles.lineHeight, styles.fontSize));
+  classes.push(getLetterSpacing(styles.letterSpacing));
+  classes.push(getTextDecorationClass(styles.textDecorationLine));
+  
+  if (styles.whiteSpace === 'nowrap') classes.push('whitespace-nowrap');
+  else if (styles.whiteSpace === 'pre') classes.push('whitespace-pre');
+  else if (styles.whiteSpace === 'pre-wrap') classes.push('whitespace-pre-wrap');
 
+  if (styles.textOverflow === 'ellipsis') classes.push('truncate');
+
+  // === COLORS ===
   const textColor = rgbToHex(styles.color);
   if (textColor !== '#000000') classes.push(getColorClass('text', textColor));
 
   const bgColor = rgbToHex(styles.backgroundColor);
   if (bgColor !== 'transparent') classes.push(getColorClass('bg', bgColor));
 
-  // --- Radius Logic Melhorada ---
+  // === BORDERS ===
   const radiusStr = styles.borderRadius;
   const radiusVal = parseFloat(radiusStr);
   
   if (radiusVal > 0) {
-      // Se for porcentagem
-      if (radiusStr.includes('%')) {
-          if (radiusVal >= 50) classes.push('rounded-full');
-          else classes.push(`rounded-[${radiusVal}%]`);
-      } 
-      // Se for pixel (ou numérico simples)
-      else {
-          const minDim = Math.min(width, height);
-          // Verifica se é visualmente um círculo (raio >= metade do tamanho)
-          if (radiusVal >= (minDim / 2) - 1) { 
-              classes.push('rounded-full');
-          } else {
-             if (radiusVal === 4) classes.push('rounded');
-             else if (radiusVal === 6) classes.push('rounded-md');
-             else if (radiusVal === 8) classes.push('rounded-lg');
-             else if (radiusVal === 12) classes.push('rounded-xl');
-             else if (radiusVal === 2) classes.push('rounded-sm');
-             else classes.push(`rounded-[${radiusVal}px]`);
-          }
+    if (radiusStr.includes('%')) {
+      if (radiusVal >= 50) classes.push('rounded-full');
+      else classes.push(`rounded-[${radiusVal}%]`);
+    } else {
+      const minDim = Math.min(width, height);
+      if (radiusVal >= (minDim / 2) - 1) { 
+        classes.push('rounded-full');
+      } else {
+        if (radiusVal === 2) classes.push('rounded-sm');
+        else if (radiusVal === 4) classes.push('rounded');
+        else if (radiusVal === 6) classes.push('rounded-md');
+        else if (radiusVal === 8) classes.push('rounded-lg');
+        else if (radiusVal === 12) classes.push('rounded-xl');
+        else if (radiusVal === 16) classes.push('rounded-2xl');
+        else if (radiusVal === 24) classes.push('rounded-3xl');
+        else classes.push(`rounded-[${radiusVal}px]`);
       }
-  }
-
-  // --- Box Shadow ---
-  if (styles.boxShadow && styles.boxShadow !== 'none') {
-      classes.push(getShadowClass(styles.boxShadow));
+    }
   }
 
   if (styles.borderWidth && parseFloat(styles.borderWidth) > 0 && styles.borderColor !== 'transparent') {
-      classes.push(`border-[${parseFloat(styles.borderWidth)}px]`); 
-      classes.push(getColorClass('border', rgbToHex(styles.borderColor)));
+    const bw = parseFloat(styles.borderWidth);
+    if (bw === 1) classes.push('border');
+    else if (bw === 2) classes.push('border-2');
+    else if (bw === 4) classes.push('border-4');
+    else if (bw === 8) classes.push('border-8');
+    else classes.push(`border-[${bw}px]`);
+    classes.push(getColorClass('border', rgbToHex(styles.borderColor)));
   }
+
+  // === EFFECTS ===
+  if (styles.boxShadow && styles.boxShadow !== 'none') {
+    classes.push(getShadowClass(styles.boxShadow));
+  }
+
+  classes.push(getOpacityClass(styles.opacity));
+  classes.push(getFilterClass(styles.filter));
+  classes.push(getTransformClasses(styles.transform));
+
+  // === IMAGE-SPECIFIC ===
+  classes.push(getObjectFitClass(styles.objectFit));
+  classes.push(getAspectRatioClass(styles.aspectRatio));
+
+  // === INTERACTION ===
+  classes.push(getCursorClass(styles.cursor));
 
   return classes.filter(Boolean).join(' ');
 }

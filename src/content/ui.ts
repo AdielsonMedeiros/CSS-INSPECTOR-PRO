@@ -319,41 +319,65 @@ export class InspectorUI {
         <span class="label">Display</span>
         <span class="value">${display} ${pos ? `(${pos})` : ''}</span>
       </div>
+      ${styles.overflow !== 'visible' ? `
+      <div class="row">
+        <span class="label">Overflow</span>
+        <span class="value">${styles.overflow}</span>
+      </div>` : ''}
+      ${styles.zIndex !== 'auto' ? `
+      <div class="row">
+        <span class="label">Z-Index</span>
+        <span class="value">${styles.zIndex}</span>
+      </div>` : ''}
        <div class="row">
         <span class="label">Radius</span>
         <span class="value">${radius}</span>
       </div>
+      
+      <div class="sep"></div>
+      
       <div class="row ${styles.boxShadow !== 'none' ? 'interactive-row' : ''}" 
            ${styles.boxShadow !== 'none' ? `data-copy="box-shadow: ${styles.boxShadow};"` : ''} 
            title="${styles.boxShadow !== 'none' ? 'Click to Copy Shadow' : ''}">
         <span class="label">Shadow</span>
         <span class="value" title="${styles.boxShadow}">${shadowDisplay}</span>
       </div>
-      ${(styles.animationName !== 'none' || parseFloat(styles.transitionDuration) > 0) ? (() => {
-          const isAnim = styles.animationName !== 'none';
-          const dur = isAnim ? styles.animationDuration : styles.transitionDuration;
-          const name = isAnim ? styles.animationName : 'Transition';
-          const timing = isAnim ? styles.animationTimingFunction : styles.transitionTimingFunction;
-          const delay = isAnim ? styles.animationDelay : styles.transitionDelay;
-          
-          const fullCSS = isAnim 
-            ? `animation: ${styles.animationName} ${dur} ${timing} ${delay} ${styles.animationIterationCount} ${styles.animationDirection};`
-            : `transition: ${styles.transitionProperty} ${dur} ${timing} ${delay};`;
-
-          const title = `Type: ${isAnim ? 'Animation' : 'Transition'}
-Duration: ${dur}
-Timing: ${timing}
-Delay: ${delay}
-${isAnim ? `Iteration: ${styles.animationIterationCount}\nDirection: ${styles.animationDirection}` : `Props: ${styles.transitionProperty}`}`;
-
+      ${parseFloat(styles.opacity) < 1 ? `
+      <div class="row">
+        <span class="label">Opacity</span>
+        <span class="value">${Math.round(parseFloat(styles.opacity) * 100)}%</span>
+      </div>` : ''}
+      ${styles.transform !== 'none' ? `
+      <div class="row interactive-row" data-copy="transform: ${styles.transform};" title="Click to Copy Transform">
+        <span class="label">Transform</span>
+        <span class="value" title="${styles.transform}">Yes</span>
+      </div>` : ''}
+      ${styles.filter !== 'none' ? `
+      <div class="row interactive-row" data-copy="filter: ${styles.filter};" title="Click to Copy Filter">
+        <span class="label">Filter</span>
+        <span class="value" title="${styles.filter}">Yes</span>
+      </div>` : ''}
+      ${styles.animationName !== 'none' ? (() => {
+          const fullCSS = `animation: ${styles.animationName} ${styles.animationDuration} ${styles.animationTimingFunction} ${styles.animationDelay} ${styles.animationIterationCount} ${styles.animationDirection};`;
+          const title = `Name: ${styles.animationName}\nDuration: ${styles.animationDuration}\nTiming: ${styles.animationTimingFunction}\nDelay: ${styles.animationDelay}\nIteration: ${styles.animationIterationCount}\nDirection: ${styles.animationDirection}`;
           return `
-          <div class="row interactive-row" data-copy="${fullCSS}" title="Click to Copy CSS">
-            <span class="label">Effects</span>
-            <span class="value" title="${title}">
-                ${name} (${dur})
-            </span>
+          <div class="row interactive-row" data-copy="${fullCSS}" title="Click to Copy Animation">
+            <span class="label">Animation</span>
+            <span class="value" title="${title}">${styles.animationName} (${styles.animationDuration})</span>
           </div>`;
       })() : ''}
+      ${parseFloat(styles.transitionDuration) > 0 ? (() => {
+          const fullCSS = `transition: ${styles.transitionProperty} ${styles.transitionDuration} ${styles.transitionTimingFunction} ${styles.transitionDelay};`;
+          const title = `Props: ${styles.transitionProperty}\nDuration: ${styles.transitionDuration}\nTiming: ${styles.transitionTimingFunction}\nDelay: ${styles.transitionDelay}`;
+          return `
+          <div class="row interactive-row" data-copy="${fullCSS}" title="Click to Copy Transition">
+            <span class="label">Transition</span>
+            <span class="value" title="${title}">${styles.transitionProperty.split(',')[0]} (${styles.transitionDuration.split(',')[0]})</span>
+          </div>`;
+      })() : ''}
+      
+      <div class="sep"></div>
+      
       <div class="row">
         <span class="label">Padding</span>
         <span class="value" title="${styles.padding}">${p}</span>
@@ -374,11 +398,35 @@ ${isAnim ? `Iteration: ${styles.animationIterationCount}\nDirection: ${styles.an
         <span class="label">Type</span>
         <span class="value">${fontSize}px / ${fontWeight}</span>
       </div>
+      ${styles.lineHeight !== 'normal' ? `
+      <div class="row">
+        <span class="label">Line-H</span>
+        <span class="value">${styles.lineHeight}</span>
+      </div>` : ''}
 
       <div class="row">
          <span class="label">Color</span>
          <span class="value"><span class="color-preview" style="background:${hexColor}"></span>${hexColor}</span>
       </div>
+      
+      ${tagName === 'IMG' ? `
+      <div class="sep"></div>
+      <div class="row">
+        <span class="label">Object-Fit</span>
+        <span class="value">${styles.objectFit || 'fill'}</span>
+      </div>
+      ${styles.aspectRatio !== 'auto' ? `
+      <div class="row">
+        <span class="label">Aspect</span>
+        <span class="value">${styles.aspectRatio}</span>
+      </div>` : ''}
+      ` : ''}
+      
+      ${styles.cursor !== 'auto' && styles.cursor !== 'default' ? `
+      <div class="row">
+        <span class="label">Cursor</span>
+        <span class="value">${styles.cursor}</span>
+      </div>` : ''}
 
       <div class="lock-hint">
         ${isLocked ? 'LOCKED' : 'SPACE to Lock'}
