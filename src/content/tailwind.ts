@@ -179,20 +179,29 @@ export function cssToTailwind(styles: CSSStyleDeclaration, width: number, height
   if (bgColor !== 'transparent') classes.push(getColorClass('bg', bgColor));
 
   // --- Radius Logic Melhorada ---
-  const rVal = parseFloat(styles.borderRadius);
-  if (rVal > 0) {
-      // Se o raio for >= metade do menor lado, é um círculo/pílula -> rounded-full
-      const minDim = Math.min(width, height);
-      if (rVal >= (minDim / 2) - 1) { // -1 de tolerância para arredondamentos
-          classes.push('rounded-full');
-      } else {
-          // Lógica padrão
-           if (rVal === 4) classes.push('rounded');
-           else if (rVal === 6) classes.push('rounded-md');
-           else if (rVal === 8) classes.push('rounded-lg');
-           else if (rVal === 12) classes.push('rounded-xl');
-           else if (rVal === 2) classes.push('rounded-sm');
-           else classes.push(`rounded-[${rVal}px]`);
+  const radiusStr = styles.borderRadius;
+  const radiusVal = parseFloat(radiusStr);
+  
+  if (radiusVal > 0) {
+      // Se for porcentagem
+      if (radiusStr.includes('%')) {
+          if (radiusVal >= 50) classes.push('rounded-full');
+          else classes.push(`rounded-[${radiusVal}%]`);
+      } 
+      // Se for pixel (ou numérico simples)
+      else {
+          const minDim = Math.min(width, height);
+          // Verifica se é visualmente um círculo (raio >= metade do tamanho)
+          if (radiusVal >= (minDim / 2) - 1) { 
+              classes.push('rounded-full');
+          } else {
+             if (radiusVal === 4) classes.push('rounded');
+             else if (radiusVal === 6) classes.push('rounded-md');
+             else if (radiusVal === 8) classes.push('rounded-lg');
+             else if (radiusVal === 12) classes.push('rounded-xl');
+             else if (radiusVal === 2) classes.push('rounded-sm');
+             else classes.push(`rounded-[${radiusVal}px]`);
+          }
       }
   }
 
