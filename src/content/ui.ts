@@ -14,7 +14,7 @@ export class InspectorUI {
   private highlightEl: HTMLElement;
   private cardEl: HTMLElement;
   private activeStyles: string = '';
-  private activeSrc: string = '';
+
 
   constructor() {
     this.host = document.createElement('div');
@@ -45,10 +45,11 @@ export class InspectorUI {
       this.copyToClipboard(this.activeStyles, badge);
     }
     
-    // Copy Image Source
-    if (target.closest('.source-row')) {
-       const row = target.closest('.source-row') as HTMLElement;
-       this.copyToClipboard(this.activeSrc, row);
+    // Generic Copy Row (Source, Shadow, Effects)
+    if (target.closest('.interactive-row')) {
+       const row = target.closest('.interactive-row') as HTMLElement;
+       const val = row.getAttribute('data-copy');
+       if (val) this.copyToClipboard(val, row);
     }
   }
 
@@ -63,12 +64,12 @@ export class InspectorUI {
       // Simple feedback: change text color or icon
       // For badge we handle icon separately in CSS/JS
       
-      // If image source row
-      if (triggerEl.classList.contains('source-row')) {
+      // If generic interactive row
+      if (triggerEl.classList.contains('interactive-row') || triggerEl.classList.contains('source-row')) {
            const val = triggerEl.querySelector('.value');
            if (val) {
                const oldText = val.textContent;
-               val.textContent = 'COPIED LINK!';
+               val.textContent = 'COPIED!';
                val.classList.add('success');
                setTimeout(() => {
                    val.textContent = oldText;
@@ -172,19 +173,20 @@ export class InspectorUI {
       }
       .icon-box { flex-shrink: 0; opacity: 0.8; }
 
-      .source-row {
+      .source-row, .interactive-row {
         background: rgba(255,255,255,0.05);
-        padding: 6px 8px;
+        padding: 4px 8px; /* Compact padding */
         border-radius: 4px;
-        margin-bottom: 8px;
+        margin-bottom: 4px;
         cursor: pointer;
         border: 1px solid transparent;
+        transition: all 0.2s;
       }
-      .source-row:hover {
+      .source-row:hover, .interactive-row:hover {
         background: rgba(255,255,255,0.1);
         border-color: rgba(255,255,255,0.1);
       }
-      .source-row .value { color: #60a5fa; text-decoration: underline; max-width: 200px; }
+      .source-row .value, .interactive-row .value { color: #60a5fa; text-decoration: underline; max-width: 200px; }
 
       .sep { height: 1px; background: rgba(255,255,255,0.1); margin: 8px 0; }
       .color-preview { width: 10px; height: 10px; border-radius: 2px; border: 1px solid #444; display: inline-block; vertical-align: middle; margin-right: 6px; }
@@ -237,18 +239,18 @@ export class InspectorUI {
 
     // Image Source Logic
     let sourceContent = '';
-    this.activeSrc = '';
+
     
     if (tagName === 'IMG') {
         const src = (element as HTMLImageElement).src;
         if (src) {
-            this.activeSrc = src;
+            
             // Shorten URL for display
             const filename = src.split('/').pop() || src;
             const displaySrc = filename.length > 25 ? filename.substring(0, 22) + '...' : filename;
             
             sourceContent = `
-              <div class="row source-row" title="${src} (Click to Copy Link)">
+              <div class="row interactive-row" data-copy="${src}" title="${src} (Click to Copy Link)">
                 <span class="label" style="display:flex;align-items:center;gap:4px">
                   ${LINK_ICON} Source
                 </span>
@@ -321,10 +323,37 @@ export class InspectorUI {
         <span class="label">Radius</span>
         <span class="value">${radius}</span>
       </div>
-      <div class="row">
+      <div class="row ${styles.boxShadow !== 'none' ? 'interactive-row' : ''}" 
+           ${styles.boxShadow !== 'none' ? `data-copy="box-shadow: ${styles.boxShadow};"` : ''} 
+           title="${styles.boxShadow !== 'none' ? 'Click to Copy Shadow' : ''}">
         <span class="label">Shadow</span>
         <span class="value" title="${styles.boxShadow}">${shadowDisplay}</span>
       </div>
+      ${(styles.animationName !== 'none' || parseFloat(styles.transitionDuration) > 0) ? (() => {
+          const isAnim = styles.animationName !== 'none';
+          const dur = isAnim ? styles.animationDuration : styles.transitionDuration;
+          const name = isAnim ? styles.animationName : 'Transition';
+          const timing = isAnim ? styles.animationTimingFunction : styles.transitionTimingFunction;
+          const delay = isAnim ? styles.animationDelay : styles.transitionDelay;
+          
+          const fullCSS = isAnim 
+            ? `animation: ${styles.animationName} ${dur} ${timing} ${delay} ${styles.animationIterationCount} ${styles.animationDirection};`
+            : `transition: ${styles.transitionProperty} ${dur} ${timing} ${delay};`;
+
+          const title = `Type: ${isAnim ? 'Animation' : 'Transition'}
+Duration: ${dur}
+Timing: ${timing}
+Delay: ${delay}
+${isAnim ? `Iteration: ${styles.animationIterationCount}\nDirection: ${styles.animationDirection}` : `Props: ${styles.transitionProperty}`}`;
+
+          return `
+          <div class="row interactive-row" data-copy="${fullCSS}" title="Click to Copy CSS">
+            <span class="label">Effects</span>
+            <span class="value" title="${title}">
+                ${name} (${dur})
+            </span>
+          </div>`;
+      })() : ''}
       <div class="row">
         <span class="label">Padding</span>
         <span class="value" title="${styles.padding}">${p}</span>
