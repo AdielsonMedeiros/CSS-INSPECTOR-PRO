@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSS Inspector Pro</title>
+    <style>
+      body {
+        width: 240px;
+        padding: 20px;
+        font-family: 'Inter', -apple-system, sans-serif;
+        background: #0f0f0f;
+        color: #fff;
+        text-align: center;
+      }
+      h1 {
+        font-size: 16px;
+        margin: 0 0 16px 0;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+      }
+      
+      .control-panel {
+        background: #1a1a1a;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid #333;
+      }
+
+      button#toggle-btn {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        background: #10b981; /* Green default */
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+      }
+
+      button#toggle-btn:hover {
+        opacity: 0.9;
+        transform: scale(0.98);
+      }
+      
+      button#toggle-btn.active {
+         /* Class used by JS to track state */
+      }
+
+      #status-text {
+        display: block;
+        margin-top: 12px;
+        font-size: 12px;
+        color: #10b981;
+        font-weight: 500;
+      }
+
+      .footer {
+        margin-top: 16px;
+        font-size: 10px;
+        color: #555;
+      }
+      
+      kbd {
+        background: #222;
+        padding: 2px 4px;
+        border-radius: 4px;
+        border: 1px solid #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CSS Inspector Pro</h1>
+    
+    <div class="control-panel">
+      <!-- Default state Active -->
+      <button id="toggle-btn" class="active">ON</button>
+      <span id="status-text">Inspector Active</span>
+    </div>
+
+    <div class="footer">
+      Press <kbd>Space</kbd> to Lock
+    </div>
+
+    <!-- Import the logic -->
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>
